@@ -80,12 +80,6 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
     setIsMarkAsReadModalOpen(true);
   };
 
-  const confirmMarkAsRead = () => {
-    // Toggle the current isRead status
-    toggleReadSender(sender.id, !sender.isRead);
-    setIsMarkAsReadModalOpen(false);
-  };
-
   const handleMoveToFolder = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
@@ -114,11 +108,10 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
         {...attributes}
         {...listeners}
         className={`group p-xs px-md flex items-center justify-between rounded-md cursor-grab 
-    ${
-      isDragging
-        ? "bg-secondary/30 dark:bg-secondary/50 text-foreground dark:text-foreground shadow-sm z-10"
-        : "hover:bg-accent"
-    }`}
+    ${isDragging
+            ? "bg-secondary/30 dark:bg-secondary/50 text-foreground dark:text-foreground shadow-sm z-10"
+            : "hover:bg-accent"
+          }`}
       >
         <div
           className="flex items-center space-x-md overflow-hidden flex-1"
@@ -205,9 +198,9 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
       <DeleteConfirmationModal
         isOpen={isUnfollowModalOpen}
         onClose={() => setIsUnfollowModalOpen(false)}
-        onConfirm={() => {
+        onConfirm={async () => {
+          await unsubcribeSender(sender.id);
           setIsUnfollowModalOpen(false);
-          unsubcribeSender(sender.id);
         }}
         itemName={sender.name}
         itemType="sender"
@@ -217,7 +210,10 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
       <DeleteConfirmationModal
         isOpen={isMarkAsReadModalOpen}
         onClose={() => setIsMarkAsReadModalOpen(false)}
-        onConfirm={confirmMarkAsRead}
+        onConfirm={async () => {
+          await toggleReadSender(sender.id, !sender.isRead);
+          setIsMarkAsReadModalOpen(false);
+        }}
         itemName={sender.name}
         itemType={sender.isRead ? "markasunread" : "markasread"}
       />
@@ -226,8 +222,8 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
       <Modal
         isOpen={isRenaming}
         onClose={() => setIsRenaming(false)}
-        onSave={(newName) => {
-          renameSender(sender.id, newName);
+        onSave={async (newName) => {
+          await renameSender(sender.id, newName);
         }}
         initialValue={sender.name}
         title="Rename Sender"

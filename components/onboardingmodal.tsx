@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Check, Loader2 } from "lucide-react";
+// Replacing Lucide with Heroicons
+import { CheckIcon } from "@heroicons/react/24/solid";
 
 import { createClient } from "@/utils/supabase/client";
 import { useAuth } from "@/context/authContext";
@@ -68,15 +69,15 @@ export const Onboardingmodal = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-md-4">
-            <h3 className="text-lg font-semibold border-b pb-2">
+          <div className="space-y-md">
+            <h3 className="text-sm text-gray-800 font-semibold border-b pb-2">
               Create your Newsletter email address
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-800">
               Subscribe to newsletters with this email address
             </p>
 
-            <form onSubmit={handleUsernameSubmit} className="space-y-md-4">
+            <form onSubmit={handleUsernameSubmit} className="space-y-md">
               <div className="flex relative">
                 <Input
                   type="text"
@@ -84,7 +85,7 @@ export const Onboardingmodal = () => {
                   name="username"
                   value={userName}
                   onChange={handleUsernameChange}
-                  className={`focus:outline-none focus:ring-0 !outline-none rounded-r-none ${!isUsernameValid && userName.trim() && !isCheckingUsername ? "border-destructive" : isUsernameValid && userName.trim() && !isCheckingUsername ? "border-primaryBlue" : ""}`}
+                  className={`text-black focus:outline-none text-sm focus:ring-0 !outline-none rounded-r-none ${!isUsernameValid && userName.trim() && !isCheckingUsername ? "border-destructive" : isUsernameValid && userName.trim() && !isCheckingUsername ? "border-primaryBlue" : ""}`}
                   disabled={isCheckingUsername}
                 />
                 <div className="bg-gray-100 flex items-center px-3 rounded-r-md">
@@ -93,20 +94,24 @@ export const Onboardingmodal = () => {
 
                 {isCheckingUsername && (
                   <div className="absolute right-14 top-1/2 transform -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                    {/* Replaced Loader2 with a simple loading spinner */}
+                    <svg className="h-4 w-4 text-primaryBlue animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                   </div>
                 )}
               </div>
               {isCheckingUsername && (
-                <p className="text-blue-500 text-sm">
+                <p className="text-primaryBlue text-sm ">
                   Checking username availability...
                 </p>
               )}
               {userNameError && !isCheckingUsername && (
-                <p className="text-red-500 text-sm">{userNameError}</p>
+                <p className="text-destructive text-sm text-gray-800">{userNameError}</p>
               )}
               {!isUsernameValid && userName.trim() && !isCheckingUsername ? (
-                <p className="text-xs text-amber-600">
+                <p className="text-sm  text-amber-600">
                   <span className="font-medium">Already taken.</span> Please try
                   a different email address
                 </p>
@@ -132,31 +137,31 @@ export const Onboardingmodal = () => {
 
       case 2:
         return (
-          <div className="space-y-md-4">
-            <h3 className="text-lg font-semibold border-b pb-2">
+          <div className="space-y-md">
+            <h3 className="text-sm text-gray-800 font-semibold border-b pb-2">
               Get your newsletters from Gmail or Outlook to Rainbox
             </h3>
 
-            <div className="bg-gray-100 rounded-md p-4 text-center mb-4">
+            <div className="bg-gray-100 rounded-md p-sm text-center mb-4">
               [Image Placeholder]
             </div>
 
-            <p className="text-sm">
+            <p className="text-sm text-gray-800">
               You can set email forwarding rules to automatically send your
               newsletter emails from Gmail and Outlook to Rainbox
             </p>
 
-            <ul className="list-disc list-inside space-y-md-2 text-sm">
+            <ul className="list-disc list-inside space-y-md text-sm text-gray-800">
               <li>
                 Instructions for email forwarding:
                 <ul className="list-inside ml-5 mt-1">
                   <li>
-                    <a href="#" className="text-blue-500 hover:underline">
+                    <a href="#" className="text-primaryBlue hover:underline">
                       Gmail
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-blue-500 hover:underline">
+                    <a href="#" className="text-primaryBlue hover:underline">
                       Outlook
                     </a>
                   </li>
@@ -167,10 +172,10 @@ export const Onboardingmodal = () => {
                 to uniquely identify the newsletters
                 <p className="mt-1">
                   Example:{" "}
-                  <span className="text-blue-500">{userName}@rainbox.app</span>
+                  <span className="text-primaryBlue">{userName}@rainbox.app</span>
                   +newslettername@rainbox.app
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   *Auto-populated with your rainbox email address
                 </p>
               </li>
@@ -191,48 +196,48 @@ export const Onboardingmodal = () => {
 
       case 3:
         return (
-          <div className="space-y-md-4">
-            <h3 className="text-lg font-semibold border-b pb-2">
+          <div className="space-y-md">
+            <h3 className="text-muted-foreground font-semibold border-b pb-2">
               Upgrade to Pro for the best experience
             </h3>
 
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="border rounded-lg p-4">
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <div className="border rounded-lg p-sm">
                 <h4 className="font-medium">Free Plan</h4>
                 <p className="font-bold">FREE</p>
-                <ul className="mt-4 space-y-md-2">
+                <ul className="mt-4 space-y-md">
                   <li className="flex items-center gap-2">
-                    <Check size={16} className="text-green-500" />
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     <span>10 Newsletters</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check size={16} className="text-green-500" />
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     <span>50 email history per Newsletter</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="border rounded-lg p-4 border-blue-200 bg-blue-50">
+              <div className="border rounded-lg p-sm border-blue-200 bg-blue-50">
                 <h4 className="font-medium">Pro Plan</h4>
                 <div className="flex items-center gap-2">
                   <p className="font-bold">$20/year</p>
-                  <span className="text-sm text-gray-500">$2.5/mo</span>
+                  <span className="text-sm text-gray-800 text-muted-foreground">$2.5/mo</span>
                 </div>
-                <ul className="mt-4 space-y-md-2">
+                <ul className="mt-4 space-y-md">
                   <li className="flex items-center gap-2">
-                    <Check size={16} className="text-green-500" />
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     <span>Unlimited Newsletters</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check size={16} className="text-green-500" />
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     <span>Unlimited history</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check size={16} className="text-green-500" />
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     <span>AI Summary</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check size={16} className="text-green-500" />
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     <span>Text to Speech</span>
                   </li>
                 </ul>
@@ -248,7 +253,7 @@ export const Onboardingmodal = () => {
                   Continue with Free plan
                 </Button>
                 <Button
-                  className="bg-blue-500 hover:bg-blue-600"
+                  className="bg-primaryBlue hover:bg-blue-600"
                   onClick={completeOnboarding}
                 >
                   Upgrade to Pro

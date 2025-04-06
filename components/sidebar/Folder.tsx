@@ -267,9 +267,8 @@ export default function Folder({
       <Modal
         isOpen={isRenamingModalOpen}
         onClose={() => setIsRenamingModalOpen(false)}
-        onSave={(newName) => {
-          console.log("in modal, name is", newName);
-          renameFolder(folder.id, newName)
+        onSave={async (newName) => {
+          await renameFolder(folder.id, newName);
         }}
         initialValue={folder.name}
         title="Rename Folder"
@@ -279,7 +278,10 @@ export default function Folder({
       <DeleteConfirmationModal
         isOpen={isDeletingModalOpen}
         onClose={() => setIsDeletingModalOpen(false)}
-        onConfirm={() => { setIsDeletingModalOpen(false); deleteFolder(folder.id) }}
+        onConfirm={async () => {
+          await deleteFolder(folder.id);
+          setIsDeletingModalOpen(false);
+        }}
         itemName={folder.name}
         itemType="folder"
       />
@@ -288,7 +290,9 @@ export default function Folder({
       <DeleteConfirmationModal
         isOpen={isMarkAsReadModalOpen}
         onClose={() => setIsMarkAsReadModalOpen(false)}
-        onConfirm={confirmMarkAsRead}
+        onConfirm={async () => {
+          await toggleReadFolder(folder.id, !folder.isRead);
+        }}
         itemName={folder.name}
         itemType={folder.isRead ? "markasunread" : "markasread"}
       />

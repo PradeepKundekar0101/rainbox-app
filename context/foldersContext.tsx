@@ -229,7 +229,7 @@ export const FoldersProvider = ({
         if (!user.user) return;
         await api.delete(`/folders/${id}`);
         setFolders(folders.filter((folder) => folder.id !== id));
-        await fetchSenders();
+
         if (user.user.id) {
           const savedOrder = getFolderOrderFromLocalStorage(user.user.id);
           delete savedOrder[id];
@@ -265,9 +265,9 @@ export const FoldersProvider = ({
           prevFolders.map((folder) =>
             folder.id === folderId
               ? {
-                  ...folder,
-                  senders: [...(folder.senders || []), response.data.sender],
-                }
+                ...folder,
+                senders: [...(folder.senders || []), response.data.sender],
+              }
               : folder
           )
         );

@@ -1,10 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (value: string) => void;
+  onSave: (value: string) => Promise<void> | void;
   initialValue?: string;
   title: string;
 }
@@ -16,20 +17,28 @@ export const Modal: React.FC<ModalProps> = ({
   initialValue = '',
   title
 }) => {
-  const [value, setvalue] = React.useState(initialValue);
+  const [value, setValue] = React.useState(initialValue);
+  const [isLoading, setIsLoading] = React.useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setvalue(initialValue);
+      setValue(initialValue);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, initialValue]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (value.trim()) {
-      onSave(value.trim());
-      onClose();
+      setIsLoading(true);
+      try {
+        await onSave(value.trim());
+        onClose();
+      } catch (error) {
+        console.error("Error saving:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -46,12 +55,11 @@ export const Modal: React.FC<ModalProps> = ({
         >
           <div className="p-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-semibold">
-                {title}
-              </h2>
+              <h2 className="text-sm font-semibold">{title}</h2>
               <button
                 onClick={onClose}
-                className="text-sm hover:text-secondary-foreground"
+                className="text-muted-foreground hover:text-secondary-foreground"
+                disabled={isLoading}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -72,37 +80,40 @@ export const Modal: React.FC<ModalProps> = ({
 
             <input
               ref={inputRef}
-              type="text"
               value={value}
-              onChange={(e) => setvalue(e.target.value)}
+              onChange={(e) => setValue(e.target.value)}
               placeholder="Folder Name"
               className="w-full p-sm border border-border dark:border-border rounded-md 
                          bg-background dark:bg-background 
                          focus:outline-none focus:ring-2 focus:ring-ring text-sm"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave();
-                if (e.key === 'Escape') onClose();
+                if (e.key === 'Enter' && !isLoading) handleSave();
+                if (e.key === 'Escape' && !isLoading) onClose();
               }}
+              disabled={isLoading}
             />
 
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-muted-foreground 
-                           hover:bg-accent 
-                           rounded-md transition-colors text-sm"
+                className="px-4 py-2 text-muted-foreground hover:bg-accent rounded-md transition-colors text-sm"
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                disabled={!value.trim()}
-                className="px-4 py-2 bg-primary text-primary-foreground 
-                           rounded-md hover:bg-primary/80 
-                           disabled:opacity-50 disabled:cursor-not-allowed 
-                           transition-colors text-sm"
+                className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/80 rounded-md transition-colors text-sm relative"
+                disabled={isLoading}
               >
-                Done
+                {isLoading ? (
+                  <>
+                    <span className="opacity-0">Done</span>
+                    <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <ArrowPathIcon className="animate-spin h-4 w-4 text-sm" />
+                    </span>
+                  </>
+                ) : "Done"}
               </button>
             </div>
           </div>

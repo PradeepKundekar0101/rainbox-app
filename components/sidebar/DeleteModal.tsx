@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
   itemName: string;
   itemType: 'folder' | 'sender' | 'markasread' | 'markasunread';
 }
@@ -16,6 +17,8 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
   itemName,
   itemType
 }) => {
+  const [isLoading, setIsLoading] = React.useState(false);
+
   if (!isOpen) return null;
 
   // Define modal content based on itemType
@@ -61,6 +64,18 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
 
   const { title, description, confirmText, confirmClass } = getModalContent();
 
+  const handleConfirm = async () => {
+    setIsLoading(true);
+    try {
+      await onConfirm();
+      onClose();
+    } catch (error) {
+      console.error("Error confirming action:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <AnimatePresence>
@@ -76,6 +91,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
               <button
                 onClick={onClose}
                 className="text-muted-foreground hover:text-secondary-foreground"
+                disabled={isLoading}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -99,18 +115,24 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
             <div className="flex justify-end space-x-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-muted-foreground 
-                           hover:bg-accent 
-                           rounded-md transition-colors text-sm"
+                className="px-4 py-2 text-muted-foreground hover:bg-accent rounded-md transition-colors text-sm"
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button
-                onClick={onConfirm}
-                className={`px-4 py-2 ${confirmClass} 
-                           rounded-md transition-colors text-sm`}
+                onClick={handleConfirm}
+                className={`px-4 py-2 ${confirmClass} rounded-md transition-colors text-sm relative`}
+                disabled={isLoading}
               >
-                {confirmText}
+                {isLoading ? (
+                  <>
+                    <span className="opacity-0">{confirmText}</span>
+                    <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <ArrowPathIcon className="animate-spin h-4 w-4 text-sm" />
+                    </span>
+                  </>
+                ) : confirmText}
               </button>
             </div>
           </div>

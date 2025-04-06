@@ -58,9 +58,7 @@ export default function Inbox() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeSender, setActiveSender] = useState<SenderType | null>(null);
   const [activeFolder, setActiveFolder] = useState<FolderType | null>(null);
-  const [focusedFolder, setFocusedFolder] = useState<string | null>(
-    "marketing"
-  ); // Default focus on Marketing
+  const [focusedFolder, setFocusedFolder] = useState<string | null>("");
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -384,8 +382,8 @@ export default function Inbox() {
       <Modal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
-        onSave={(folderName) => {
-          createFolder(folderName);
+        onSave={async (folderName) => {
+          await createFolder(folderName);
 
           // Add new folder to ordered items when created
           setOrderedItems((prev) => [
@@ -397,32 +395,10 @@ export default function Inbox() {
               order: prev.length,
             },
           ]);
-
-          setIsFolderModalOpen(false);
         }}
         title="Create New Folder"
       />
 
-      {/* Confirmation Modal (for delete/unfollow) */}
-      <ConfirmModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => {
-          setIsConfirmModalOpen(false);
-          setCurrentAction(null);
-          setTargetId(null);
-        }}
-        onConfirm={() => {
-          if (currentAction === "delete") handleDeleteFolder();
-          if (currentAction === "unfollow") handleUnfollowSender();
-        }}
-        title={currentAction === "delete" ? "Delete Folder" : "Unfollow Sender"}
-        description={
-          currentAction === "delete"
-            ? "Are you sure you want to delete this folder? This operation cannot be undone."
-            : "Are you sure you want to unfollow this sender?"
-        }
-        showUnfollowOption={currentAction === "delete"}
-      />
 
       <DragOverlay>
         {activeId && activeSender && (

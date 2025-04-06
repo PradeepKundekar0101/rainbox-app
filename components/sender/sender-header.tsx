@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMails } from "@/context/mailsContext";
-import { XIcon, RefreshCcw, CheckIcon } from "lucide-react";
+import { XIcon, RefreshCcw, CheckIcon, MoreHorizontal } from "lucide-react";
 import { useSenders } from "@/context/sendersContext";
 export const SenderHeader = ({
   filter,
@@ -26,7 +26,7 @@ export const SenderHeader = ({
   } = useMails();
   const { selectedSender } = useSenders();
   return (
-    <div className="flex flex-row items-center justify-between p-xs border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+    <div className="flex flex-row items-center justify-between p-sm  h-header border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
       <h1 className="text-lg font-semibold pl-3">{selectedSender?.name}</h1>
       <div className="flex flex-row items-center gap-1">
         <Select onValueChange={setFilter} value={filter}>
@@ -40,25 +40,26 @@ export const SenderHeader = ({
           </SelectContent>
         </Select>
         <button
-          onClick={() => markAsReadAllBySenderId(selectedSender?.id!)}
-          className="p-sm rounded-full hover:bg-muted transition-colors"
-        >
-          <CheckIcon className="w-4 h-4" />
-        </button>
-        <button
-          className="p-sm rounded-full hover:bg-muted transition-colors"
+          className="p-xs rounded-full hover:bg-muted transition-colors"
           onClick={() => {
             refreshMails();
           }}
         >
           <RefreshCcw className="w-4 h-4" />
         </button>
+        <button
+          onClick={() => markAsReadAllBySenderId(selectedSender?.id!)}
+          className="p-xs rounded-full hover:bg-muted transition-colors"
+        >
+          <CheckIcon className="w-4 h-4" />
+        </button>
+
         {selectedMail && (
           <button
-            className="p-sm rounded-full hover:bg-muted transition-colors"
-            onClick={() => setSelectedMail(null)}
+            className="p-xs rounded-full hover:bg-muted transition-colors"
+          // onClick={() => setSelectedMail(null)}
           >
-            <XIcon className="w-4 h-4" />
+            <MoreHorizontal className="w-4 h-4" />
           </button>
         )}
       </div>

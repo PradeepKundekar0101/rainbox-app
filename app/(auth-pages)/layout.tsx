@@ -9,7 +9,7 @@ interface AuthLayoutProps {
 
 function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="flex flex-col md:flex-row">
+    <div className="flex flex-col md:flex-row h-screen">
       <div className="hidden relative overflow-hidden  md:w-1/2 md:flex items-center border justify-center">
         <svg
           style={{ left: "20%", top: "-35%", width: "65%", height: "65%" }}

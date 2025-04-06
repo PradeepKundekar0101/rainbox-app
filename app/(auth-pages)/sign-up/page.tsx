@@ -51,7 +51,7 @@ export default async function Signup(props: {
           </div>
         </div>
 
-        <form className="space-y-md-4" action={signUpAction}>
+        <form className="space-y-md" action={signUpAction}>
           <div>
             <Input
               type="email"

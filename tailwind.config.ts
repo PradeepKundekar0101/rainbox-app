@@ -18,6 +18,9 @@ const config = {
       },
     },
     extend: {
+      height: {
+        header: "45px", 
+      },
       colors: {
         // Base color palette
         border: "hsl(var(--border))",
