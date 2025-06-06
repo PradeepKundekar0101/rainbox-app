@@ -1,3 +1,6 @@
+// components/inbox/Folder.tsx
+
+import React, { useState, useRef, useEffect } from "react";
 import { FolderType, SenderType } from "@/types/data";
 import {
   SortableContext,
@@ -7,51 +10,34 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  BellSlashIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  EllipsisHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
+  BellSlashIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon,
+  EllipsisHorizontalIcon, PencilIcon, TrashIcon,
 } from "@heroicons/react/24/outline";
 import Sender from "./sender";
 import { BasicModal } from "../modals/basic-modal";
-import { useState, useRef, useEffect } from "react";
 import { DeleteConfirmationModal } from "../modals/delete-modal";
 import { useFolders } from "@/context/foldersContext";
+import { useSidebarLayout } from "@/context/sidebarLayoutContext";
+import { SenderDropdownMenu } from "./sender-dropdown-menu";
 import { useSenders } from "@/context/sendersContext";
 
 interface FolderProps {
   folder: FolderType;
-  expanded: boolean;
-  toggleExpanded: (id: string) => void;
-  activeFolder: string | null;
-  onRenameFolder: (folderId: string, newName: string) => void;
-  onDeleteFolder: (folderId: string) => void;
-  onMarkFolderAsRead?: (folderId: string) => void;
-  senders: SenderType[];
+  isTargetForDrop: boolean;
 }
 
-export default function Folder({
-  folder,
-  expanded,
-  toggleExpanded,
-  activeFolder,
-  onRenameFolder,
-  onDeleteFolder,
-  onMarkFolderAsRead,
-  senders,
-}: FolderProps) {
-  const { deleteFolder, renameFolder, getSenders, toggleReadFolder } =
-    useFolders();
+export default function FolderComponent({ folder, isTargetForDrop }: FolderProps) {
+  const { deleteFolder, renameFolder, toggleReadFolder } = useFolders();
+  const { getOrderedSendersForFolder, toggleFolderExpansion, expandedFolders } = useSidebarLayout();
+
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isRenamingModalOpen, setIsRenamingModalOpen] = useState(false);
-  const [isDeletingModalOpen, setIsDeletingModalOpen] = useState(false);
   const [isMarkAsReadModalOpen, setIsMarkAsReadModalOpen] = useState(false);
-  const [folderSenders, setFolderSenders] = useState<SenderType[]>([]);
-  const [isLoadingSenders, setIsLoadingSenders] = useState<boolean>(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const expanded = !!expandedFolders[folder.id];
+  const folderSenders = getOrderedSendersForFolder(folder.id);
 
   const {
     attributes,
@@ -64,39 +50,21 @@ export default function Folder({
     id: `folder-${folder.id}`,
     data: {
       type: "folder",
-      folder,
+      item: folder,
+      containerId: "root",
     },
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: `transform 0.2s ease, opacity 0.2s ease`,
     opacity: isDragging ? 0.5 : 1,
+    border: isTargetForDrop ? "2px dashed var(--primary)" : "2px dashed transparent",
+    borderRadius: '0.375rem',
+    margin: isTargetForDrop ? '2px' : '4px' // Adjust margin to compensate for border
   };
 
-  // Fetch senders when folder is expanded
-  useEffect(() => {
-    if (expanded) {
-      const fetchFolderSenders = async () => {
-        setIsLoadingSenders(true);
-        try {
-          const data = await getSenders(folder.id);
-          if (data) {
-            setFolderSenders(data);
-          }
-        } catch (error) {
-          console.error("Error fetching senders for folder:", error);
-        } finally {
-          setIsLoadingSenders(false);
-        }
-      };
-
-      fetchFolderSenders();
-    }
-  }, [expanded]);
-
   const senderIds = folderSenders.map((sender) => `sender-${sender.id}`);
-  const isFolderActive = activeFolder === folder.id;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -104,192 +72,62 @@ export default function Folder({
         setMenuOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleMenuClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpen(!menuOpen);
-  };
-
-  const handleRename = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpen(false);
-    setIsRenamingModalOpen(true);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpen(false);
-    setIsDeletingModalOpen(true);
-  };
-
-  const handleMarkAsRead = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpen(false);
-    setIsMarkAsReadModalOpen(true);
-  };
-
-  const handleMuteNotifications = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpen(false);
-    // Add your mute notifications logic here
-    console.log(`Muted notifications for ${folder.name}`);
-  };
-
-  const confirmMarkAsRead = () => {
-    // Toggle the current isRead status
-    toggleReadFolder(folder.id, !folder.isRead);
-    setIsMarkAsReadModalOpen(false);
-  };
-
-  // Skeleton loader component for senders
-  const SkeletonLoader = () => (
-    <div className="space-y-2 ml-10 mt-2">
-      {[1, 2].map((index) => (
-        <div key={index} className="flex items-center animate-pulse">
-          <div className="w-6 h-6 rounded-md bg-secondary mr-2"></div>
-          <div className="h-6 bg-secondary rounded-md w-full"></div>
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <>
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`mb-0 ${isDragging ? "z-10" : ""}`}
-      >
-        <motion.div
-          whileTap={{ scale: 0.98 }}
-          onClick={() => toggleExpanded(folder.id)}
-          className={`group px-md p-xs flex items-center justify-between rounded-md transition-colors cursor-pointer
-    ${isFolderActive
-              ? "bg-primary/10 text-primary"
-              : isDragging
-                ? "bg-secondary"
-                : "hover:bg-accent"
-            }`}
+      <div ref={setNodeRef} style={style} className={`transition-all duration-150`}>
+        <div
+          onClick={() => toggleFolderExpansion(folder.id)}
+          className={`group p-xs flex items-center justify-between rounded-md transition-colors cursor-pointer hover:bg-accent`}
           {...attributes}
           {...listeners}
         >
-          <div className="flex items-center space-x-md flex-grow">
-            <div className="flex-shrink-0">
-              {expanded ? (
-                <ChevronDownIcon className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
-              )}
-            </div>
-
-            <span className="text-sm font-medium truncate overflow-hidden overflow-ellipsis w-0 flex-1 mr-2 text-foreground">
-              {folder.name}
-            </span>
+          <div className="flex items-center space-x-md flex-grow min-w-0">
+            {expanded ? <ChevronDownIcon className="w-4 h-4 text-muted-foreground" /> : <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />}
+            <span className="text-sm font-medium truncate">{folder.name}</span>
           </div>
 
           <div className="flex items-center space-x-2">
-            <div className="relative group" ref={menuRef}>
+            <span className="text-xs text-muted-foreground font-medium">{folderSenders.length}</span>
+            <div className="relative">
               <button
-                onClick={handleMenuClick}
-                className="p-xs hover:cursor-pointer text-muted-foreground rounded-full transition-all duration-350 ease-in-out opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-foreground"
+                className="p-xs text-muted-foreground hover:cursor-pointer rounded-full transition-all duration-350 ease-in-out opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-foreground"
               >
                 <EllipsisHorizontalIcon className="w-4 h-4" />
               </button>
-              <AnimatePresence>
-                {menuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-8 w-48 bg-content text-popover-foreground rounded-md shadow-lg py-1 z-20 border border-border"
-                  >
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm flex items-center space-x-2 hover:bg-secondary transition-all duration-300 ease-in-out hover:cursor-pointer"
-                      onClick={handleMarkAsRead}
-                    >
-                      <CheckIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {folder.isRead ? "Mark as unread" : "Mark as read"}
-                      </span>
-                    </button>
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm flex items-center space-x-2 hover:bg-secondary transition-all duration-300 ease-in-out hover:cursor-pointer"
-                      onClick={handleMuteNotifications}
-                    >
-                      <BellSlashIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">Mute notifications</span>
-                    </button>
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm flex items-center space-x-2 hover:bg-secondary transition-all duration-300 ease-in-out hover:cursor-pointer"
-                      onClick={handleRename}
-                    >
-                      <PencilIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">Rename</span>
-                    </button>
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm flex items-center space-x-2 hover:bg-secondary transition-all duration-300 ease-in-out hover:cursor-pointer"
-                      onClick={handleDelete}
-                    >
-                      <TrashIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">Delete</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">
-              {folder.senders?.length
-                ? folder.senders.length >= 1000
-                  ? `${Math.floor(folder.senders.length / 1000)}K+`
-                  : folder.senders.length
-                : 0}
-            </span>
-          </div>
-        </motion.div>
 
-        {/* Show skeleton loader or senders for this folder with animation */}
+            </div>
+          </div>
+        </div>
+
         <AnimatePresence>
           {expanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="pl-6 pt-1 space-y-1"
             >
-              {isLoadingSenders ? (
-                <SkeletonLoader />
-              ) : folderSenders.length > 0 ? (
-                <div className="ml-6 mt-1.25 space-y-md-1.25">
-                  <SortableContext
-                    items={senderIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {folderSenders.map((sender) => (
-                      <Sender key={sender.id} sender={sender} />
-                    ))}
-                  </SortableContext>
-                </div>
-              ) : (
-                <div className="ml-10 m-md text-sm text-muted-foreground">
-                  No senders in this folder
-                </div>
-              )}
+              <SortableContext items={senderIds} strategy={verticalListSortingStrategy}>
+                {folderSenders.map((sender) => (
+                  <Sender key={sender.id} sender={sender} containerId={folder.id} />
+                ))}
+              </SortableContext>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+
+
       {/* Rename Modal */}
       <BasicModal
-        isOpen={isRenamingModalOpen}
-        onClose={() => setIsRenamingModalOpen(false)}
+        isOpen={isRenaming}
+        onClose={() => setIsRenaming(false)}
         onSave={async (newName) => {
           await renameFolder(folder.id, newName);
         }}
@@ -299,11 +137,11 @@ export default function Folder({
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
-        isOpen={isDeletingModalOpen}
-        onClose={() => setIsDeletingModalOpen(false)}
+        isOpen={isDeleting}
+        onClose={() => setIsDeleting(false)}
         onConfirm={async () => {
           await deleteFolder(folder.id);
-          setIsDeletingModalOpen(false);
+          setMenuOpen(false);
         }}
         showUnfollowOption={true}
         itemName={folder.name}

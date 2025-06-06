@@ -7,6 +7,7 @@ export interface User {
   usedFeeds: number;
   totalFeeds: number;
 }
+
 export interface SenderType {
   id: string;
   name: string;
@@ -14,13 +15,16 @@ export interface SenderType {
   domain?: string;
   user_id: string;
   created_at: string;
-  folder_id?: string;
+  folder_id?: string | null;
   icon?: string;
   count: number;
-  folder?: string;
+  folder?: string; 
   order?: number;
+  subscribed?: boolean;
   isRead?: boolean;
+  type: "sender"; 
 }
+
 export interface FolderType {
   id: string;
   name: string;
@@ -31,7 +35,10 @@ export interface FolderType {
   senders?: SenderType[];
   order?: number;
   isRead?: boolean;
+  type: "folder"; 
 }
+
+
 export interface Mail {
   id: string;
   user_id: string;
@@ -44,7 +51,7 @@ export interface Mail {
   bookmarked: boolean;
 }
 export interface Feed {
-  id: string;
+  id:string;
   name: string;
   icon?: string;
   count: number;
@@ -58,20 +65,13 @@ export interface Category {
   isExpanded: boolean;
 }
 
-export interface User {
-  email: string;
-  plan: "free" | "pro" | "enterprise";
-  usedFeeds: number;
-  totalFeeds: number;
-}
-
 export interface Connection {
   id: string;
   type: "gmail" | "outlook";
   accountName: string;
   userEmail?: string | null;
   isConnected: boolean;
-  logo: string; // Use string instead of React.ReactNode
+  logo: string;
   logoAlt: string;
 }
 

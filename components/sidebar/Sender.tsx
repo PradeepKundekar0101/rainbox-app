@@ -12,15 +12,10 @@ import { SenderDropdownMenu } from "./sender-dropdown-menu";
 
 interface SenderProps {
   sender: SenderType;
-  onRenameSender?: (senderId: string, newName: string) => void;
+  containerId: string;
 }
 
-export default function Sender({ sender, onRenameSender }: SenderProps) {
-  const { renameSender, unsubcribeSender, toggleReadSender } = useSenders();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [isMarkAsReadModalOpen, setIsMarkAsReadModalOpen] = useState(false);
-  const [isUnfollowModalOpen, setIsUnfollowModalOpen] = useState(false);
+export default function Sender({ sender, containerId }: SenderProps) {
   const { setSelectedSender } = useSenders();
   const {
     attributes,
@@ -33,9 +28,16 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
     id: `sender-${sender.id}`,
     data: {
       type: "sender",
-      sender,
+      item: sender,
+      containerId: containerId,
     },
   });
+
+  const { renameSender, unsubcribeSender, toggleReadSender } = useSenders();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isMarkAsReadModalOpen, setIsMarkAsReadModalOpen] = useState(false);
+  const [isUnfollowModalOpen, setIsUnfollowModalOpen] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -87,25 +89,16 @@ export default function Sender({ sender, onRenameSender }: SenderProps) {
         style={style}
         {...attributes}
         {...listeners}
-        className={`group p-xs px-md flex items-center justify-between rounded-md cursor-grab 
-          ${isDragging
-            ? "bg-secondary/30 dark:bg-secondary/50 text-foreground dark:text-foreground shadow-sm z-10"
-            : "hover:bg-accent"
-          }`}
+        className={`group p-xs px-md flex items-center justify-between rounded-md cursor-grab hover:bg-accent`}
+        whileTap={{ scale: 0.98, cursor: 'grabbing' }}
       >
         <div
           className="flex items-center space-x-md overflow-hidden flex-1"
-          onClick={() => {
-            setSelectedSender(sender);
-            console.log(sender);
-          }}
+          onClick={() => setSelectedSender(sender)}
         >
           <SenderIcon sender={sender} />
-          <span className="text-sm font-medium truncate overflow-hidden mr-2">
-            {sender.name}
-          </span>
+          <span className="text-sm font-medium truncate">{sender.name}</span>
         </div>
-
         <div className="flex items-center space-x-2">
           <div className="relative">
             <button
